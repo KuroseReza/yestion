@@ -17,7 +17,7 @@ function stripMarkdown(md: string): string {
 
 // Synced from dist/index.html via build_and_sync.sh
 const CSS_PATH = '/assets/index-d4bswsIW.css'
-const JS_PATH = '/assets/index-d70jJJIY.js'
+const JS_PATH = '/assets/index-Dr26cnoW.js'
 
 function renderHtml(ogTags: string): string {
   return `<!doctype html>

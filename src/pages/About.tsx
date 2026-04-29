@@ -57,6 +57,10 @@ Yestion 也会加入公开文档库功能，把零散的分享链接进一步组
 > 私人写作要顺手，公开阅读要稳定，协同工作要围绕内容本身。
 
 Yestion 的方向是小而清晰：先把写作、保存、分享做好，再把协同和公开文档库建立在同一套内容模型之上。它应该像一个可以长期使用的知识工作台，而不是一次性的文档发布工具。
+
+## GitHub
+
+项目源码已公开在 GitHub： [KuroseReza/yestion](https://github.com/KuroseReza/yestion)
 `
 
 export default function About() {
