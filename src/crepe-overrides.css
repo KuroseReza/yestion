@@ -1,0 +1,900 @@
+/* ═══════════════════════════════════════════════════
+   Yestion Editor Overrides
+   Exact prose-stone + amber match with Share page
+   ═══════════════════════════════════════════════════ */
+
+/* ── 1. Force transparent — let glass-panel show through ── */
+.milkdown,
+.milkdown .editor,
+.ProseMirror,
+.milkdown .ProseMirror {
+  background: transparent !important;
+}
+.milkdown {
+  --crepe-color-background: transparent;
+  --crepe-color-primary: #b45309;
+  --crepe-color-secondary: #fef3c7;
+  --crepe-color-on-secondary: #1c1917;
+  --crepe-color-inline-code: #92400e;
+  --crepe-color-surface: transparent;
+  --crepe-color-surface-low: transparent;
+  --crepe-color-hover: #e7e5e4;
+  --crepe-color-selected: #d6d3d1;
+  --crepe-color-outline: #a39d96;
+  --crepe-color-on-surface-variant: #44403c;
+  --crepe-color-inline-area: #e7e5e4;
+  --crepe-font-default: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --crepe-font-title: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.ProseMirror:focus,
+.milkdown .ProseMirror-focused {
+  outline: none !important;
+}
+.milkdown .ProseMirror {
+  padding: 0 !important;
+}
+.milkdown .crepe-placeholder::before {
+  color: #a39d96;
+  opacity: 0.6;
+}
+
+/* ── 2. Headings ── */
+.milkdown .ProseMirror h1,
+.milkdown .ProseMirror h2,
+.milkdown .ProseMirror h3,
+.milkdown .ProseMirror h4,
+.milkdown .ProseMirror h5,
+.milkdown .ProseMirror h6 {
+  font-family: var(--crepe-font-title);
+  padding: 2px 0;
+  font-weight: 700;
+  color: #0c0a09;
+  letter-spacing: -0.025em;
+}
+.milkdown .ProseMirror h1 {
+  margin-top: 0;
+  font-size: 36px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+.milkdown .ProseMirror h2 {
+  margin-top: 32px;
+  font-size: 24px;
+  line-height: 1.3;
+}
+.milkdown .ProseMirror h3 {
+  margin-top: 24px;
+  font-size: 20px;
+  line-height: 1.4;
+}
+.milkdown .ProseMirror h4 {
+  margin-top: 20px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* ── 3. Paragraph ── */
+.milkdown .ProseMirror p {
+  padding: 0;
+  font-size: 16px;
+  line-height: 1.75;
+  color: #44403c;
+  margin: 0.75em 0;
+}
+.milkdown .ProseMirror strong {
+  color: #0c0a09;
+  font-weight: 600;
+}
+
+/* ── 4. Link ── */
+.milkdown .ProseMirror a {
+  color: #b45309 !important;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+/* ── 5. Blockquote ── */
+.milkdown .ProseMirror blockquote {
+  box-sizing: border-box;
+  margin: 1.25em 0;
+  padding: 8px 16px;
+  position: relative;
+  border-left: 4px solid #d97706;
+  background: rgb(255 251 235 / 0.7);
+  border-radius: 0 1rem 1rem 0;
+  color: #44403c;
+}
+.milkdown .ProseMirror blockquote p {
+  margin: 0.25em 0;
+}
+
+/* ── 6. Inline code ── */
+.milkdown .ProseMirror code {
+  color: #92400e;
+  background: rgb(254 243 199 / 0.7);
+  font-family: var(--crepe-font-code);
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 0.875em;
+  line-height: 1.5;
+  display: inline;
+  font-weight: 500;
+}
+.milkdown .ProseMirror code::before,
+.milkdown .ProseMirror code::after {
+  content: "" !important;
+}
+
+/* ── 7. Fenced code block ── */
+.milkdown .ProseMirror pre {
+  background: #292524;
+  border-radius: 1rem;
+  padding: 12px 16px;
+  color: #f5f5f4;
+  margin: 1em 0;
+  font-size: 0.875em;
+  line-height: 1.6;
+  border: 1px solid rgb(120 53 15 / 0.1);
+  box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.06);
+  overflow-x: auto;
+}
+
+/* ── 7b. Mermaid preview — inherits code block chrome ── */
+.milkdown .mermaid-preview-inner {
+  background: transparent;
+  padding: 4px 0;
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+}
+.milkdown .mermaid-preview-inner svg {
+  max-width: 100%;
+  height: auto;
+}
+.milkdown .ProseMirror pre code {
+  color: inherit;
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+  border-radius: 0;
+  font-weight: 400;
+}
+
+/* ── 8. Crepe CodeMirror block ── */
+.milkdown .milkdown-code-block {
+  background: #292524;
+  border: 1px solid rgb(120 53 15 / 0.1);
+  border-radius: 1rem;
+  box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.06);
+  margin: 1em 0;
+  padding: 8px 14px 4px 14px !important;
+}
+.milkdown .milkdown-code-block .cm-content {
+  padding: 2px 0;
+}
+.milkdown .milkdown-code-block .cm-editor,
+.milkdown .milkdown-code-block .cm-gutters {
+  background: #292524;
+  color: #f5f5f4;
+}
+.milkdown .milkdown-code-block .cm-activeLine,
+.milkdown .milkdown-code-block .cm-activeLineGutter {
+  background-color: rgb(245 245 244 / 0.06);
+}
+.milkdown .milkdown-code-block .tools .language-button {
+  background: rgb(245 245 244 / 0.08);
+  color: #d6d3d1;
+}
+.milkdown .milkdown-code-block .tools .language-button:hover {
+  background: rgb(245 245 244 / 0.14);
+}
+.milkdown .milkdown-code-block .tools .tools-button-group button {
+  background: rgb(245 245 244 / 0.08);
+  color: #d6d3d1;
+}
+/* Mermaid/code preview behavior:
+   - CodeMirror blocks are editable by default, so standard code blocks show correctly.
+   - For Mermaid, we hide the CodeMirror editor and show the preview, unless focused.
+   - While focused, the editor is shown and the preview is hidden.
+   - We use :has(.mermaid-preview-inner) to target only Mermaid blocks. */
+.milkdown .milkdown-code-block:has(.mermaid-preview-inner) .codemirror-host {
+  display: none !important;
+}
+.milkdown .milkdown-code-block:has(.mermaid-preview-inner):focus-within .codemirror-host {
+  display: block !important;
+}
+.milkdown .milkdown-code-block:has(.mermaid-preview-inner):focus-within .preview-panel {
+  display: none !important;
+}
+
+/* ── 9. Lists ── */
+.milkdown .ProseMirror ul,
+.milkdown .ProseMirror ol {
+  padding-left: 1.625em;
+  margin: 0.75em 0;
+}
+.milkdown .ProseMirror ul { list-style-type: disc; }
+.milkdown .ProseMirror ol { list-style-type: decimal; }
+.milkdown .ProseMirror li { margin: 0.25em 0; }
+.milkdown .ProseMirror li p { margin: 0.25em 0; }
+.milkdown .ProseMirror ul > li::marker { color: #d6d3d1; }
+.milkdown .ProseMirror ol > li::marker { color: #a39d96; }
+
+/* ── 10. HR ── */
+.milkdown .ProseMirror hr {
+  background-color: #d6d3d1;
+  background-clip: content-box;
+  border: none;
+  height: 13px;
+  padding: 6px 0;
+  margin: 2em 0;
+}
+
+/* ── 11. Image ── */
+.milkdown .ProseMirror img {
+  vertical-align: bottom;
+  max-width: 100%;
+  border-radius: 1rem;
+  margin: 1em 0;
+  border: 1px solid rgb(180 83 9 / 0.1);
+}
+
+/* Editor LazyImage NodeView — mirrors app LazyImage behavior inside Milkdown */
+.milkdown .wysiwyg-lazy-image {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  min-width: min(100%, 18rem);
+  min-height: 120px;
+  margin: 1em 0;
+  overflow: hidden;
+  border-radius: 1rem;
+  vertical-align: bottom;
+  border: 1px solid rgb(180 83 9 / 0.1);
+  background: rgb(245 245 244 / 0.55);
+}
+
+.milkdown .wysiwyg-lazy-image.selected {
+  outline: 2px solid rgb(245 158 11 / 0.65);
+  outline-offset: 2px;
+}
+
+.milkdown .wysiwyg-lazy-image-container {
+  width: 100%;
+  min-height: 120px;
+  border-radius: inherit;
+}
+
+.milkdown .milkdown-image-inline .wysiwyg-lazy-image-container {
+  display: inline-block;
+}
+
+.milkdown .wysiwyg-lazy-image-img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 1rem;
+}
+
+.milkdown .wysiwyg-lazy-image-skeleton,
+.milkdown .wysiwyg-lazy-image-broken {
+  position: absolute;
+  inset: 0;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 1rem;
+  color: #a8a29e;
+  background: rgb(231 229 228 / 0.8);
+}
+
+.milkdown .wysiwyg-lazy-image-shimmer {
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.45), transparent);
+  animation: shimmer 1.8s infinite;
+}
+
+.milkdown .wysiwyg-lazy-image-icon {
+  position: relative;
+  width: 2rem;
+  height: 2rem;
+  color: #d6d3d1;
+}
+
+/* ── 12. Table ── */
+.milkdown .ProseMirror table { width: 100%; border-collapse: collapse; font-size: 0.875em; margin: 1.5em 0; }
+.milkdown .ProseMirror th { font-weight: 600; color: #0c0a09; border-bottom: 1px solid #d6d3d1; padding: 0.5em 0.75em; text-align: left; }
+.milkdown .ProseMirror td { padding: 0.5em 0.75em; border-bottom: 1px solid #e7e5e4; text-align: left; }
+
+/* ── 13. Selection ── */
+.milkdown .ProseMirror ::selection,
+.milkdown .ProseMirror::selection {
+  background: rgb(245 158 11 / 0.28);
+}
+
+/* ═══════════════════════════════════════════════════
+   MOBILE (< 640px) — Aggressive responsive fixes
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .milkdown { font-size: 15px; }
+
+  .milkdown .ProseMirror {
+    min-height: 200px;
+  }
+
+  .milkdown .ProseMirror {
+    padding: 0 !important;
+  }
+
+  .milkdown .ProseMirror h1 {
+    font-size: 24px;
+    line-height: 1.25;
+  }
+  .milkdown .ProseMirror h2 {
+    margin-top: 20px;
+    font-size: 18px;
+    line-height: 1.3;
+  }
+  .milkdown .ProseMirror h3 {
+    margin-top: 16px;
+    font-size: 16px;
+    line-height: 1.35;
+  }
+  .milkdown .ProseMirror h4 {
+    margin-top: 14px;
+    font-size: 15px;
+  }
+
+  .milkdown .ProseMirror p {
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 0.5em 0;
+  }
+
+  .milkdown .ProseMirror blockquote {
+    padding: 6px 12px;
+    margin: 0.75em 0;
+    border-radius: 0 10px 10px 0;
+    border-left-width: 3px;
+  }
+
+  .milkdown .ProseMirror pre {
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 8px 10px;
+    border-radius: 10px;
+  }
+
+  .milkdown .ProseMirror ul,
+  .milkdown .ProseMirror ol {
+    padding-left: 1.25em;
+    margin: 0.5em 0;
+  }
+
+  .milkdown .ProseMirror li {
+    margin: 0.15em 0;
+  }
+
+  .milkdown .ProseMirror code {
+    font-size: 0.85em;
+  }
+
+  .milkdown .ProseMirror hr {
+    margin: 1.25em 0;
+  }
+
+  .milkdown .milkdown-code-block {
+    border-radius: 10px;
+    padding: 8px 10px 4px 10px !important;
+  }
+  .milkdown .milkdown-code-block .cm-content {
+    padding: 4px 0;
+  }
+
+  .milkdown .mermaid-preview-inner {
+    padding: 0;
+  }
+
+  .milkdown .wysiwyg-lazy-image,
+  .milkdown .wysiwyg-lazy-image-img,
+  .milkdown .wysiwyg-lazy-image-skeleton,
+  .milkdown .wysiwyg-lazy-image-broken {
+    border-radius: 10px;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════
+   DARK MODE — matches the app's .dark class toggle on <html>
+   ═══════════════════════════════════════════════════ */
+html.dark .milkdown, html.dark .milkdown-theme-nord {
+  --crepe-color-background: #1c1917;
+  --crepe-color-on-background: #e1e2e8;
+  --crepe-color-surface: #292524;
+  --crepe-color-surface-low: #1c1917;
+  --crepe-color-on-surface: #e1e2e8;
+  --crepe-color-on-surface-variant: #d6d3d1;
+  --crepe-color-outline: #78716c;
+  --crepe-color-primary: #f59e0b;
+  --crepe-color-secondary: #451a03;
+  --crepe-color-on-secondary: #fef3c7;
+  --crepe-color-inline-code: #fbbf24;
+  --crepe-color-hover: #44403c;
+  --crepe-color-selected: #57534e;
+  --crepe-color-inline-area: #292524;
+  --crepe-color-error: #fca5a5;
+}
+
+html.dark .milkdown .ProseMirror, html.dark .milkdown-theme-nord .ProseMirror {
+  color: #d6d3d1;
+}
+
+html.dark .milkdown .ProseMirror h1, html.dark .milkdown-theme-nord .ProseMirror h1,
+html.dark .milkdown .ProseMirror h2, html.dark .milkdown-theme-nord .ProseMirror h2,
+html.dark .milkdown .ProseMirror h3, html.dark .milkdown-theme-nord .ProseMirror h3,
+html.dark .milkdown .ProseMirror h4, html.dark .milkdown-theme-nord .ProseMirror h4,
+html.dark .milkdown .ProseMirror strong, html.dark .milkdown-theme-nord .ProseMirror strong,
+html.dark .milkdown .ProseMirror th, html.dark .milkdown-theme-nord .ProseMirror th {
+  color: #f5f5f4;
+}
+
+html.dark .milkdown .ProseMirror p, html.dark .milkdown-theme-nord .ProseMirror p,
+html.dark .milkdown .ProseMirror li, html.dark .milkdown-theme-nord .ProseMirror li,
+html.dark .milkdown .ProseMirror td, html.dark .milkdown-theme-nord .ProseMirror td {
+  color: #d6d3d1;
+}
+
+html.dark .milkdown .ProseMirror a, html.dark .milkdown-theme-nord .ProseMirror a {
+  color: #f59e0b !important;
+}
+
+html.dark .milkdown .ProseMirror code, html.dark .milkdown-theme-nord .ProseMirror code {
+  color: #fbbf24;
+  background: #451a03;
+}
+
+html.dark .milkdown .ProseMirror blockquote, html.dark .milkdown-theme-nord .ProseMirror blockquote {
+  background: rgb(69 26 3 / 0.3);
+  color: #d6d3d1;
+}
+
+html.dark .milkdown .ProseMirror pre, html.dark .milkdown-theme-nord .ProseMirror pre,
+html.dark .milkdown .milkdown-code-block, html.dark .milkdown-theme-nord .milkdown-code-block {
+  background: #292524;
+  border-color: rgb(120 53 15 / 0.15);
+}
+
+html.dark .milkdown .milkdown-code-block .cm-editor, html.dark .milkdown-theme-nord .milkdown-code-block .cm-editor,
+html.dark .milkdown .milkdown-code-block .cm-gutters, html.dark .milkdown-theme-nord .milkdown-code-block .cm-gutters {
+  background: #292524;
+}
+
+html.dark .milkdown .milkdown-code-block .tools .language-button, html.dark .milkdown-theme-nord .milkdown-code-block .tools .language-button {
+  background: rgb(245 245 244 / 0.08);
+  color: #d6d3d1;
+}
+
+html.dark .milkdown .ProseMirror hr, html.dark .milkdown-theme-nord .ProseMirror hr {
+  background-color: #44403c;
+}
+
+html.dark .milkdown .ProseMirror td, html.dark .milkdown-theme-nord .ProseMirror td {
+  border-color: #292524;
+}
+
+html.dark .milkdown .ProseMirror th, html.dark .milkdown-theme-nord .ProseMirror th {
+  border-color: #44403c;
+}
+
+html.dark .milkdown .ProseMirror ::selection, html.dark .milkdown-theme-nord .ProseMirror ::selection {
+  background: rgb(245 158 11 / 0.2);
+}
+
+html.dark .milkdown .wysiwyg-lazy-image, html.dark .milkdown-theme-nord .wysiwyg-lazy-image {
+  background: rgb(28 25 23 / 0.65);
+  border-color: rgb(180 83 9 / 0.18);
+}
+
+html.dark .milkdown .wysiwyg-lazy-image-skeleton, html.dark .milkdown-theme-nord .wysiwyg-lazy-image-skeleton,
+html.dark .milkdown .wysiwyg-lazy-image-broken, html.dark .milkdown-theme-nord .wysiwyg-lazy-image-broken {
+  color: #78716c;
+  background: rgb(41 37 36 / 0.75);
+}
+
+html.dark .milkdown .wysiwyg-lazy-image-shimmer, html.dark .milkdown-theme-nord .wysiwyg-lazy-image-shimmer {
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.08), transparent);
+}
+.milkdown .milkdown-code-block .cm-scroller {
+  padding-bottom: 0 !important;
+}
+
+/* Force Mermaid SVG text to be light colored */
+.milkdown .mermaid-preview-inner svg text,
+.milkdown .mermaid-preview-inner svg tspan,
+.milkdown .mermaid-preview-inner svg .label,
+.milkdown .mermaid-preview-inner svg .messageText {
+  fill: #fffbeb !important;
+  color: #fffbeb !important;
+}
+.milkdown .mermaid-preview-inner svg .edgeLabel {
+  background-color: #292524 !important;
+  color: #fffbeb !important;
+}
+
+/* Fix for the "wide chin" in code blocks */
+.milkdown .milkdown-code-block {
+  position: relative !important;
+  padding: 10px 14px 10px 14px !important;
+}
+.milkdown .milkdown-code-block .tools {
+  position: absolute !important;
+  top: 8px;
+  right: 12px;
+  width: auto !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  pointer-events: none; /* Let clicks pass through empty space */
+}
+.milkdown .milkdown-code-block .tools > * {
+  pointer-events: auto; /* Re-enable clicks on actual tools */
+}
+.milkdown .milkdown-code-block .cm-content {
+  padding: 0 !important;
+  padding-right: 120px !important; /* Prevent text from hiding under the tools */
+}
+.milkdown .milkdown-code-block .cm-scroller {
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Share page is a viewer, not an editor: no text/node selection; only images are interactive. */
+.wysiwyg-share .ProseMirror,
+.wysiwyg-share .milkdown .ProseMirror {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  caret-color: transparent !important;
+}
+.wysiwyg-share .milkdown .ProseMirror * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+.wysiwyg-share .milkdown .tools,
+.wysiwyg-share .milkdown .milkdown-code-block .tools {
+  display: none !important;
+}
+.wysiwyg-share .milkdown .milkdown-code-block,
+.wysiwyg-share .milkdown .milkdown-code-block *:not(.mermaid-preview-inner):not(.mermaid-preview-inner *) {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+/* Share code blocks are read-only, but must still receive touch/pointer events
+   so horizontally overflowing code can be swiped left/right. Keyboard focus is
+   prevented by contenteditable=false/tabindex=-1 in WysiwygEditor.tsx. */
+.wysiwyg-share .milkdown .milkdown-code-block,
+.wysiwyg-share .milkdown .milkdown-code-block .codemirror-host,
+.wysiwyg-share .milkdown .milkdown-code-block .cm-editor,
+.wysiwyg-share .milkdown .milkdown-code-block .cm-scroller,
+.wysiwyg-share .milkdown .milkdown-code-block .cm-content {
+  pointer-events: auto !important;
+  touch-action: pan-x pan-y pinch-zoom !important;
+}
+.wysiwyg-share .milkdown .milkdown-code-block .cm-scroller {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+.wysiwyg-share .milkdown .milkdown-code-block .cm-line {
+  white-space: pre !important;
+}
+.wysiwyg-share .milkdown .milkdown-code-block .cm-content,
+.wysiwyg-share .milkdown .milkdown-code-block .cm-editor,
+.wysiwyg-share .milkdown .milkdown-code-block .codemirror-host {
+  caret-color: transparent !important;
+}
+.wysiwyg-share .milkdown .wysiwyg-lazy-image,
+.wysiwyg-share .milkdown .wysiwyg-lazy-image-img {
+  cursor: zoom-in;
+}
+
+/* Crepe code blocks: remove accumulated bottom padding/chrome that creates the wide "chin". */
+.milkdown .milkdown-code-block {
+  position: relative !important;
+  padding: 8px 14px 4px 14px !important;
+}
+.milkdown .milkdown-code-block .codemirror-host,
+.milkdown .milkdown-code-block .cm-editor,
+.milkdown .milkdown-code-block .cm-scroller {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+.milkdown .milkdown-code-block .cm-content {
+  padding: 0 120px 0 0 !important; /* prevent text from hiding under tools */
+}
+.milkdown .milkdown-code-block .preview-panel,
+.milkdown .milkdown-code-block .preview {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Force Mermaid SVG text/strokes to stay readable on the dark code-block surface. */
+.milkdown .mermaid-preview-inner svg,
+.milkdown .mermaid-preview-inner svg text,
+.milkdown .mermaid-preview-inner svg tspan,
+.milkdown .mermaid-preview-inner svg .label,
+.milkdown .mermaid-preview-inner svg .messageText,
+.milkdown .mermaid-preview-inner svg .actor,
+.milkdown .mermaid-preview-inner svg .titleText,
+.milkdown .mermaid-preview-inner svg .sectionTitle,
+.milkdown .mermaid-preview-inner svg .nodeLabel,
+.milkdown .mermaid-preview-inner svg foreignObject,
+.milkdown .mermaid-preview-inner svg foreignObject * {
+  fill: #fffbeb !important;
+  color: #fffbeb !important;
+}
+.milkdown .mermaid-preview-inner svg .edgeLabel,
+.milkdown .mermaid-preview-inner svg .edgeLabel p,
+.milkdown .mermaid-preview-inner svg .labelBkg {
+  background-color: #292524 !important;
+  color: #fffbeb !important;
+  fill: #292524 !important;
+}
+.milkdown .mermaid-preview-inner svg path,
+.milkdown .mermaid-preview-inner svg line,
+.milkdown .mermaid-preview-inner svg marker path {
+  stroke: #fbbf24 !important;
+}
+
+/* On mobile, adjust the tools and padding */
+@media (max-width: 639px) {
+  .milkdown .milkdown-code-block {
+    padding: 8px 10px 8px 10px !important;
+  }
+  .milkdown .milkdown-code-block .tools {
+    top: 6px;
+    right: 8px;
+  }
+  .milkdown .milkdown-code-block .cm-content {
+    padding-right: 100px !important;
+  }
+}
+
+/* Static public share renderer (no Milkdown/CodeMirror).
+   Keep these values intentionally close to the Milkdown overrides above so
+   share pages look like the same document surface without editor behavior. */
+.share-markdown {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  caret-color: transparent !important;
+  color: #44403c;
+  line-height: 1.75;
+}
+html.dark .share-markdown {
+  color: #d6d3d1;
+}
+.share-markdown :where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--crepe-font-title, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+  padding: 2px 0;
+  font-weight: 700;
+  color: #0c0a09;
+  letter-spacing: -0.025em;
+  line-height: 1.3;
+}
+.share-markdown h1 {
+  margin: 0 0 0.75em 0;
+  font-size: 36px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+.share-markdown h2 {
+  margin: 32px 0 0.65em 0;
+  font-size: 24px;
+  line-height: 1.3;
+}
+.share-markdown h3 {
+  margin: 24px 0 0.65em 0;
+  font-size: 20px;
+  line-height: 1.4;
+}
+.share-markdown h4 {
+  margin: 20px 0 0.65em 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+html.dark .share-markdown :where(h1, h2, h3, h4, h5, h6),
+html.dark .share-markdown strong,
+html.dark .share-markdown th {
+  color: #f5f5f4;
+}
+.share-markdown p {
+  padding: 0;
+  font-size: 16px;
+  line-height: 1.75;
+  color: #44403c;
+  margin: 0.75em 0;
+}
+.share-markdown strong {
+  color: #0c0a09;
+  font-weight: 600;
+}
+.share-markdown ul,
+.share-markdown ol {
+  padding-left: 1.625em;
+  margin: 0.75em 0;
+}
+.share-markdown ul { list-style-type: disc; }
+.share-markdown ol { list-style-type: decimal; }
+.share-markdown li { margin: 0.25em 0; }
+.share-markdown li p { margin: 0.25em 0; }
+.share-markdown ul > li::marker { color: #d6d3d1; }
+.share-markdown ol > li::marker { color: #a39d96; }
+.share-markdown a {
+  color: #b45309 !important;
+  text-decoration: underline;
+  font-weight: 500;
+}
+.share-markdown blockquote {
+  box-sizing: border-box;
+  margin: 1.25em 0;
+  padding: 8px 16px;
+  position: relative;
+  border-left: 4px solid #d97706;
+  background: rgb(255 251 235 / 0.7);
+  border-radius: 0 1rem 1rem 0;
+  color: #44403c;
+}
+.share-markdown blockquote p { margin: 0.25em 0; }
+.share-markdown :not(pre) > code {
+  color: #92400e;
+  background: rgb(254 243 199 / 0.7);
+  font-family: var(--crepe-font-code, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace);
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 0.875em;
+  line-height: 1.5;
+  display: inline;
+  font-weight: 500;
+}
+.share-markdown .share-code-block,
+.share-markdown .share-mermaid-block {
+  background: #292524;
+  border: 1px solid rgb(120 53 15 / 0.1);
+  border-radius: 1rem;
+  box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.06);
+  color: #f5f5f4;
+  margin: 1em 0;
+}
+.share-markdown .share-code-block {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y pinch-zoom;
+  padding: 10px 14px 4px 14px;
+  font-size: 0.875em;
+  line-height: 1.6;
+}
+.share-markdown .share-code-block code {
+  display: block;
+  min-width: max-content;
+  white-space: pre;
+  font-family: var(--crepe-font-code, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace);
+  color: inherit;
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+  line-height: inherit;
+  border-radius: 0;
+  font-weight: 400;
+}
+.share-markdown .share-mermaid-block {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y pinch-zoom;
+  padding: 8px 14px 4px 14px;
+}
+.share-markdown .share-mermaid-block .mermaid {
+  min-width: max-content;
+  display: flex;
+  justify-content: center;
+  padding: 4px 0;
+}
+.share-markdown .share-mermaid-block svg {
+  max-width: none;
+  height: auto;
+}
+.share-markdown .share-mermaid-block svg text,
+.share-markdown .share-mermaid-block svg tspan,
+.share-markdown .share-mermaid-block svg .nodeLabel,
+.share-markdown .share-mermaid-block svg .nodeLabel *,
+.share-markdown .share-mermaid-block svg .edgeLabel,
+.share-markdown .share-mermaid-block svg .edgeLabel *,
+.share-markdown .share-mermaid-block svg foreignObject,
+.share-markdown .share-mermaid-block svg foreignObject *,
+.share-markdown .share-mermaid-block svg span,
+.share-markdown .share-mermaid-block svg p {
+  fill: #fffbeb !important;
+  color: #fffbeb !important;
+}
+.share-markdown .share-mermaid-block svg path,
+.share-markdown .share-mermaid-block svg line,
+.share-markdown .share-mermaid-block svg marker path {
+  stroke: #fbbf24 !important;
+}
+.share-markdown .share-image-frame {
+  max-width: 100%;
+  margin: 1em 0;
+}
+
+.share-markdown p.share-image-paragraph {
+  margin: 1em 0;
+  width: 100%;
+  line-height: 0;
+}
+.share-markdown p.share-image-paragraph .share-image-frame {
+  margin: 0;
+  line-height: 1.75;
+}
+.share-markdown .mermaid[data-processed="true"] {
+  font-size: 0;
+}
+.share-markdown .mermaid[data-processed="true"] svg {
+  font-size: 16px;
+}
+
+.share-markdown .share-lazy-image {
+  position: relative;
+  overflow: hidden;
+  max-width: 100%;
+  min-width: min(100%, 18rem);
+  min-height: 120px;
+  border-radius: 1rem;
+  border: 1px solid rgb(180 83 9 / 0.1);
+  background: rgb(245 245 244 / 0.55);
+}
+.share-markdown .share-lazy-image-img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 1rem;
+}
+.share-markdown img {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+html.dark .share-markdown p,
+html.dark .share-markdown li,
+html.dark .share-markdown td {
+  color: #d6d3d1;
+}
+html.dark .share-markdown a { color: #f59e0b !important; }
+html.dark .share-markdown :not(pre) > code { background: #451a03; color: #fbbf24; }
+html.dark .share-markdown blockquote { background: rgb(69 26 3 / 0.3); color: #d6d3d1; }
+html.dark .share-markdown .share-code-block,
+html.dark .share-markdown .share-mermaid-block { border-color: rgb(120 53 15 / 0.15); }
+html.dark .share-markdown .share-lazy-image { background: rgb(28 25 23 / 0.65); border-color: rgb(180 83 9 / 0.18); }
+@media (max-width: 640px) {
+  .share-markdown { font-size: 15px; }
+  .share-markdown h1 { font-size: 24px; line-height: 1.25; }
+  .share-markdown h2 { margin-top: 20px; font-size: 18px; line-height: 1.3; }
+  .share-markdown h3 { margin-top: 16px; font-size: 16px; line-height: 1.35; }
+  .share-markdown h4 { margin-top: 14px; font-size: 15px; }
+  .share-markdown p { font-size: 15px; line-height: 1.6; margin: 0.5em 0; }
+  .share-markdown blockquote { padding: 6px 12px; margin: 0.75em 0; border-radius: 0 10px 10px 0; border-left-width: 3px; }
+  .share-markdown .share-code-block { font-size: 12px; line-height: 1.5; padding: 8px 10px 4px 10px; border-radius: 10px; }
+  .share-markdown .share-mermaid-block { padding: 8px 10px 4px 10px; border-radius: 10px; }
+  .share-markdown .share-mermaid-block .mermaid { padding: 0; }
+  .share-markdown ul,
+  .share-markdown ol { padding-left: 1.25em; margin: 0.5em 0; }
+  .share-markdown li { margin: 0.15em 0; }
+  .share-markdown :not(pre) > code { font-size: 0.85em; }
+  .share-markdown .share-lazy-image,
+  .share-markdown .share-lazy-image-img { border-radius: 10px; }
+}

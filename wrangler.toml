@@ -1,0 +1,23 @@
+name = "yestion"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "yestion-db"
+database_id = "472cf267-94e0-4c36-8802-8cec8c09de18"
+preview_database_id = "c5a0b944-0e2f-4b8c-b5af-628a4533a50b"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "dbc5ae3b0722499ca8188d45a3ce2e00"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "yestion-media"
+
+[vars]
+R2_BUCKET = "yestion-media"
+R2_ACCOUNT_ID = "aa3e76f64cf65d52920c66b3d847d1b0"
+INIT_ADMIN_EMAIL = "admin@yestion.local"
+INIT_ADMIN_PASSWORD = "admin123456"

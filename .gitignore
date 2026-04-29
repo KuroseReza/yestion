@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.hermes/
+.env
+.env.local
+.env.*.local
+.wrangler/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python cache
+__pycache__/
+*.pyc

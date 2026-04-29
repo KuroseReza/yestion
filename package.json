@@ -1,0 +1,35 @@
+{
+  "name": "yestion",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && CSS=$(grep -oP 'href=\"\\K/assets/[^\"]+\\.css' dist/index.html) && JS=$(grep -oP 'src=\"\\K/assets/[^\"]+\\.js' dist/index.html) && sed -i \"s|const CSS_PATH = .*|const CSS_PATH = '$CSS'|\" functions/share/[id].ts && sed -i \"s|const JS_PATH = .*|const JS_PATH = '$JS'|\" functions/share/[id].ts && echo \"Synced: $CSS | $JS\"",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@milkdown/crepe": "^7.20.0",
+    "@milkdown/ctx": "^7.20.0",
+    "@milkdown/prose": "^7.20.0",
+    "@milkdown/transformer": "^7.20.0",
+    "@prosemirror-adapter/solid": "^0.5.3",
+    "@solidjs/router": "^0.16.1",
+    "@tailwindcss/typography": "^0.5.19",
+    "@tailwindcss/vite": "^4.2.4",
+    "aws4fetch": "^1.0.20",
+    "highlight.js": "^11.11.1",
+    "itty-router": "^5.0.23",
+    "katex": "^0.16.45",
+    "marked": "^18.0.2",
+    "mermaid": "^11.14.0",
+    "solid-js": "^1.9.12",
+    "tailwindcss": "^4.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.2",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.10",
+    "vite-plugin-solid": "^2.11.12"
+  }
+}
