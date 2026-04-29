@@ -25,7 +25,11 @@ export default function MainLayout(props: { children?: JSX.Element }) {
         </div>
         
         <div class="flex items-center gap-1 sm:gap-2">
-          <button onClick={() => navigate('/api-docs')} class="px-3 py-1.5 rounded-lg text-sm font-medium text-stone-600 dark:text-stone-300 hover:text-stone-950 dark:hover:text-white hover:bg-amber-50/80 dark:hover:bg-white/5 transition-colors hidden sm:block">
+          <button onClick={() => navigate('/about')} class={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors hidden sm:block ${location.pathname === '/about' ? 'bg-amber-100/80 dark:bg-white/10 text-amber-800 dark:text-amber-200' : 'text-stone-600 dark:text-stone-300 hover:text-stone-950 dark:hover:text-white hover:bg-amber-50/80 dark:hover:bg-white/5'}`}>
+            About
+          </button>
+
+          <button onClick={() => navigate('/api-docs')} class={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors hidden sm:block ${location.pathname === '/api-docs' ? 'bg-amber-100/80 dark:bg-white/10 text-amber-800 dark:text-amber-200' : 'text-stone-600 dark:text-stone-300 hover:text-stone-950 dark:hover:text-white hover:bg-amber-50/80 dark:hover:bg-white/5'}`}>
             API
           </button>
 

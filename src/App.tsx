@@ -2,6 +2,7 @@ import { Router, Route } from '@solidjs/router'
 import MainLayout from './layouts/MainLayout'
 import Home from './pages/Home'
 import ApiDocs from './pages/ApiDocs'
+import About from './pages/About'
 import Settings from './pages/Settings'
 import Login from './pages/Login'
 import Share from './pages/Share'
@@ -12,6 +13,7 @@ export default function App() {
     <Router>
       <Route path="/" component={MainLayout}>
         <Route path="/" component={Home} />
+        <Route path="/about" component={About} />
         <Route path="/api-docs" component={ApiDocs} />
         <Route path="/settings" component={Settings} />
         <Route path="/login" component={Login} />
