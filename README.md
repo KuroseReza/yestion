@@ -1,6 +1,6 @@
 # Yestion
 
-A modern Markdown note-taking and sharing platform built with SolidJS on Cloudflare's edge — single-domain Pages Functions architecture, glassmorphism UI, i18n (EN/ZH).
+A modern Markdown note-taking and sharing platform built with SolidJS on Cloudflare's edge — single-domain Pages Functions architecture.
 
 ## Architecture
 
@@ -31,23 +31,21 @@ Browser
 - **Share links** with configurable expiry time (1h–30d, or never) — database-backed with real-time revocation
 - **Image management** — view all uploaded images, copy markdown to re-insert, delete from R2
 - **Admin panel** — invite codes with usage tracking, API token management
-- **Glassmorphism UI** — light/dark modes, responsive mobile layout
-- **i18n** — English / 中文 toggle
 - **R2 cleanup** — deleting a document also removes its R2 file and all associated images
 
 ## Wrangler Bindings
 
 | Binding | Type | Resource |
 |---|---|---|
-| `DB` | D1 | `f2ktion-db` |
+| `DB` | D1 | `yestion-db` |
 | `KV` | KV | JWT secret namespace |
-| `R2` | R2 Bucket | `f2ktion-media` |
+| `R2` | R2 Bucket | `yestion-media` |
 
 ## Environment Variables
 
 | Variable | Required | Description |
 |---|---|---|
-| `INIT_ADMIN_EMAIL` | optional | Seed admin email (first run only, default: `admin@f2ktion.dev`) |
+| `INIT_ADMIN_EMAIL` | optional | Seed admin email (first run only, default: `admin@yestion.dev`) |
 | `INIT_ADMIN_PASSWORD` | optional | Seed admin password (first run only, default: `change-me`) |
 | `R2_ACCESS_KEY_ID` | optional* | R2 S3-compatible access key |
 | `R2_SECRET_ACCESS_KEY` | optional* | R2 S3-compatible secret key |
