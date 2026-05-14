@@ -1,4 +1,4 @@
-import { AutoRouter, json, error } from 'itty-router'
+import {AutoRouter, json, error, IRequestStrict} from 'itty-router'
 import {
   requireAuth, signToken, getUserByEmail, getUserById, createUser,
   generateInviteCode, consumeInviteCode, listUsers, seedAdminIfNeeded, verifyPassword, extractBearerToken,
@@ -8,7 +8,7 @@ import * as docService from '../lib/docService'
 import { uploadImage } from '../lib/mediaService'
 import { getDocContent, getImageByKey, getImages, deleteImage as deleteImageFromDb, isImageReferencedByDoc } from '../lib/db'
 import { getSignedUrl } from '../lib/r2sign'
-import { createShareLink, getActiveShareLink, listShareLinks, disableShareLink } from '../lib/shareService'
+import { createShareLink, getActiveShareLink, listShareLinks, deleteShareLink } from '../lib/shareService'
 
 export interface Env {
   DB: D1Database
@@ -22,7 +22,13 @@ export interface Env {
   INIT_ADMIN_PASSWORD?: string
 }
 
-const router = AutoRouter({
+type AppRequest<P extends Record<string, string> = Record<string, string>> =
+    IRequestStrict & {
+  params: P
+  _cors?: Record<string, string>
+}
+
+const router = AutoRouter<AppRequest, [Env, ExecutionContext]>({
   before: [
     async (request, env: Env) => {
       const origin = request.headers.get('Origin') || '*'
@@ -193,7 +199,7 @@ router.get('/api/admin/invites', adminMw, async (request, env: Env) => {
   return json(result.results || [])
 })
 
-router.delete('/api/admin/invites/:code', adminMw, async (request, env: Env) => {
+router.delete('/api/admin/invites/:code', adminMw, async (request: AppRequest, env: Env) => {
   const code = decodeURIComponent(request.params.code)
   if (!code) return error(400, 'code required')
   const result = await env.DB.prepare('DELETE FROM invite_codes WHERE code = ?').bind(code).run()
@@ -201,7 +207,7 @@ router.delete('/api/admin/invites/:code', adminMw, async (request, env: Env) => 
   return json({ deleted: true })
 })
 
-router.patch('/api/admin/users/:id', adminMw, async (request, env: Env) => {
+router.patch('/api/admin/users/:id', adminMw, async (request: AppRequest, env: Env) => {
   const auth = (request as any).auth
   const targetId = request.params.id
   if (targetId === auth.sub) return error(400, 'Cannot modify your own account')
@@ -218,7 +224,7 @@ router.patch('/api/admin/users/:id', adminMw, async (request, env: Env) => {
   return json(user)
 })
 
-router.delete('/api/admin/users/:id', adminMw, async (request, env: Env) => {
+router.delete('/api/admin/users/:id', adminMw, async (request: AppRequest, env: Env) => {
   const auth = (request as any).auth
   const targetId = request.params.id
   if (targetId === auth.sub) return error(400, 'Cannot delete your own account')
@@ -229,12 +235,12 @@ router.delete('/api/admin/users/:id', adminMw, async (request, env: Env) => {
 
 // ── Doc Endpoints ─────────────────────────────────────
 
-router.get('/api/docs', authMw, async (request, env: Env) => {
+router.get('/api/docs', authMw, async (request: AppRequest, env: Env) => {
   const auth = (request as any).auth
   return json(await docService.listDocs(env, auth.sub))
 })
 
-router.get('/api/docs/:id/content', authMw, async (request, env: Env) => {
+router.get('/api/docs/:id/content', authMw, async (request: AppRequest, env: Env) => {
   const auth = (request as any).auth
   const doc = await docService.getDocMetadata(env, request.params.id)
   if (!doc) return error(404, 'Not found')
@@ -242,14 +248,14 @@ router.get('/api/docs/:id/content', authMw, async (request, env: Env) => {
   return serveR2Object(env, doc.r2_key)
 })
 
-router.get('/api/docs/:id', authMw, async (request, env: Env) => {
+router.get('/api/docs/:id', authMw, async (request: AppRequest, env: Env) => {
   const auth = (request as any).auth
   const doc = await docService.getDoc(env, request.params.id, auth.sub)
   if (!doc) return error(404, 'Not found')
   return json(doc)
 })
 
-router.post('/api/docs', authMw, async (request, env: Env) => {
+router.post('/api/docs', authMw, async (request: AppRequest, env: Env) => {
   const { title, content } = await request.json() as { title?: string; content: string }
   if (typeof content !== 'string') return error(400, 'content required')
   const auth = (request as any).auth
@@ -257,14 +263,14 @@ router.post('/api/docs', authMw, async (request, env: Env) => {
   return json(doc, { status: 201 })
 })
 
-router.delete('/api/docs/:id', authMw, async (request, env: Env) => {
+router.delete('/api/docs/:id', authMw, async (request: AppRequest, env: Env) => {
   const auth = (request as any).auth
   const result = await docService.deleteDoc(env, request.params.id, auth.sub)
   if (result.status !== 200) return error(result.status, result.error!)
   return json({ success: true })
 })
 
-router.patch('/api/docs/:id/patch', authMw, async (request, env: Env) => {
+router.patch('/api/docs/:id/patch', authMw, async (request: AppRequest, env: Env) => {
   const { title, content, version } = await request.json() as { title?: string; content: string; version: number }
   if (typeof content !== 'string') return error(400, 'content required')
   if (typeof version !== 'number') return error(400, 'version required')
@@ -280,17 +286,17 @@ router.patch('/api/docs/:id/patch', authMw, async (request, env: Env) => {
 
 // ── Share Endpoints ───────────────────────────────────
 
-router.post('/api/docs/:id/share', authMw, async (request, env: Env) => {
-  const { expiryMinutes } = await request.json().catch(() => ({})) as { expiryMinutes?: number }
+router.post('/api/docs/:id/share', authMw, async (request: AppRequest, env: Env) => {
+  const { expiryMinutes, allowDownload } = await request.json().catch(() => ({})) as { expiryMinutes?: number; allowDownload?: boolean }
   const auth = (request as any).auth
   const doc = await docService.getDocMetadata(env, request.params.id)
   if (!doc) return error(404, 'Not found')
   if (doc.owner_id !== auth.sub) return error(403, 'Forbidden')
-  const share = await createShareLink(env, request.params.id, auth.sub, expiryMinutes !== undefined ? expiryMinutes : 24 * 60)
+  const share = await createShareLink(env, request.params.id, auth.sub, expiryMinutes !== undefined ? expiryMinutes : 24 * 60, allowDownload)
   return json(share, { status: 201 })
 })
 
-router.get('/api/docs/:id/shares', authMw, async (request, env: Env) => {
+router.get('/api/docs/:id/shares', authMw, async (request: AppRequest, env: Env) => {
   const auth = (request as any).auth
   const doc = await docService.getDocMetadata(env, request.params.id)
   if (!doc) return error(404, 'Not found')
@@ -298,19 +304,19 @@ router.get('/api/docs/:id/shares', authMw, async (request, env: Env) => {
   return json(await listShareLinks(env, request.params.id))
 })
 
-router.delete('/api/docs/:id/shares/:shareId', authMw, async (request, env: Env) => {
+router.delete('/api/docs/:id/shares/:shareId', authMw, async (request: AppRequest, env: Env) => {
   const auth = (request as any).auth
   const doc = await docService.getDocMetadata(env, request.params.id)
   if (!doc) return error(404, 'Not found')
   if (doc.owner_id !== auth.sub) return error(403, 'Forbidden')
-  const ok = await disableShareLink(env, request.params.id, request.params.shareId)
+  const ok = await deleteShareLink(env, request.params.id, request.params.shareId)
   if (!ok) return error(404, 'Share link not found')
   return json({ success: true })
 })
 
 // ── Upload ────────────────────────────────────────────
 
-router.post('/api/upload', authMw, async (request, env: Env) => {
+router.post('/api/upload', authMw, async (request: AppRequest, env: Env) => {
   const formData = await request.formData()
   const file = formData.get('file') as File | null
   const docId = formData.get('docId') as string | null
@@ -320,7 +326,7 @@ router.post('/api/upload', authMw, async (request, env: Env) => {
   return json({ id: result.id, key: result.key, url: result.url }, { status: 201 })
 })
 
-router.post('/api/upload-md', authMw, async (request, env: Env) => {
+router.post('/api/upload-md', authMw, async (request: AppRequest, env: Env) => {
   const contentType = request.headers.get('Content-Type') || ''
   if (!contentType.includes('multipart/form-data')) return error(400, 'Expected multipart/form-data')
 
@@ -342,7 +348,7 @@ router.post('/api/upload-md', authMw, async (request, env: Env) => {
 
 // ── Media ─────────────────────────────────────────────
 
-router.get('/api/media/*', authMw, async (request, env: Env) => {
+router.get('/api/media/*', authMw, async (request: AppRequest, env: Env) => {
   const auth = (request as any).auth
   const pathname = new URL(request.url).pathname
   const key = decodeURIComponent(pathname.slice('/api/media/'.length))
@@ -355,13 +361,13 @@ router.get('/api/media/*', authMw, async (request, env: Env) => {
 
 // ── Image Management ──────────────────────────────────
 
-router.get('/api/images', authMw, async (request, env: Env) => {
+router.get('/api/images', authMw, async (request: AppRequest, env: Env) => {
   const auth = (request as any).auth
   const images = await getImages(env.DB, auth.sub)
   return json(images)
 })
 
-router.delete('/api/images/:id', authMw, async (request, env: Env) => {
+router.delete('/api/images/:id', authMw, async (request: AppRequest, env: Env) => {
   const auth = (request as any).auth
   const ok = await deleteImageFromDb(env.DB, env.R2, request.params.id, auth.sub)
   if (!ok) return error(404, 'Image not found')
@@ -370,7 +376,7 @@ router.delete('/api/images/:id', authMw, async (request, env: Env) => {
 
 // ── Public Share (visitor routes) ─────────────────────
 
-router.get('/api/share/:shareId/media/*', async (request, env: Env) => {
+router.get('/api/share/:shareId/media/*', async (request: AppRequest, env: Env) => {
   const share = await getActiveShareLink(env, request.params.shareId)
   if (!share) return error(403, 'Invalid, revoked, or expired share link')
   const doc = await docService.getDocMetadata(env, share.doc_id)
@@ -397,7 +403,7 @@ router.get('/api/share/:shareId/media/*', async (request, env: Env) => {
 
 // ── Share image map (for frontend UUID resolution) ─────
 
-router.get('/api/share/:shareId/images', async (request, env: Env) => {
+router.get('/api/share/:shareId/images', async (request: AppRequest, env: Env) => {
   const share = await getActiveShareLink(env, request.params.shareId)
   if (!share) return error(403, 'Invalid, revoked, or expired share link')
   const result = await env.DB.prepare(
@@ -410,24 +416,41 @@ router.get('/api/share/:shareId/images', async (request, env: Env) => {
   return json({ images }, { status: 200 })
 })
 
-router.get('/api/share/:shareId', async (request, env: Env) => {
+router.get('/api/share/:shareId', async (request: AppRequest, env: Env) => {
   const share = await getActiveShareLink(env, request.params.shareId)
   if (!share) return error(403, 'Invalid, revoked, or expired share link')
   const doc = await docService.getDocMetadata(env, share.doc_id)
   if (!doc) return error(404, 'Document not found')
   const content = await getDocContent(env.R2, doc.r2_key)
-  return json({ id: doc.id, title: doc.title, content })
+  return json({ id: doc.id, title: doc.title, content, allowDownload: Boolean(share.allow_download) })
+})
+
+router.get('/api/share/:shareId/download', async (request: AppRequest, env: Env) => {
+  const share = await getActiveShareLink(env, request.params.shareId)
+  if (!share) return error(403, 'Invalid, revoked, or expired share link')
+  if (!share.allow_download) return error(403, 'Download not permitted for this share link')
+  const doc = await docService.getDocMetadata(env, share.doc_id)
+  if (!doc) return error(404, 'Document not found')
+  const content = await getDocContent(env.R2, doc.r2_key)
+  const filename = (doc.title || 'untitled').replace(/[<>:"/\\|?*\x00-\x1f]/g, '_') + '.md'
+  return new Response(content, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/markdown; charset=utf-8',
+      'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
+    },
+  })
 })
 
 // ── User Endpoints ────────────────────────────────────
 
-router.get('/api/user/tokens', authMw, async (request, env: Env) => {
+router.get('/api/user/tokens', authMw, async (request: AppRequest, env: Env) => {
   const auth = (request as any).auth
   const result = await env.DB.prepare('SELECT id, name, created_at FROM api_tokens WHERE user_id = ? ORDER BY created_at DESC').bind(auth.sub).all()
   return json(result.results || [])
 })
 
-router.post('/api/user/tokens', authMw, async (request, env: Env) => {
+router.post('/api/user/tokens', authMw, async (request: AppRequest, env: Env) => {
   const auth = (request as any).auth
   const { name } = await request.json().catch(() => ({})) as { name?: string }
   const cleanName = (name || '').trim()
@@ -440,7 +463,7 @@ router.post('/api/user/tokens', authMw, async (request, env: Env) => {
   return json({ id, name: cleanName, token: rawToken, created_at: new Date().toISOString() }, { status: 201 })
 })
 
-router.delete('/api/user/tokens/:id', authMw, async (request, env: Env) => {
+router.delete('/api/user/tokens/:id', authMw, async (request: AppRequest, env: Env) => {
   const auth = (request as any).auth
   const result = await env.DB.prepare('DELETE FROM api_tokens WHERE id = ? AND user_id = ?').bind(request.params.id, auth.sub).run()
   if (!result.meta?.changes) return error(404, 'Token not found')

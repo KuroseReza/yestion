@@ -9,13 +9,16 @@ A minimalist, high-performance cloud Markdown note-taking & publishing platform.
 ### Document Management (Owner)
 - **Auth**: PBKDF2 + JWT login. Admin-seeded on first deploy.
 - **List**: Sorted by `updated_at DESC`, glass-panel sidebar.
-- **Editor**: Raw markdown textarea + rendered preview toggle. `Cmd+S` / `Ctrl+S` save. Auto-version with conflict detection (409).
-- **.md Import**: Upload `.md` files directly — filename becomes title.
-- **Image Upload**: Upload images via file picker, stored in R2 with SigV4 pre-signed URLs. Inserted as `![alt](/api/media/...)` in markdown.
+- **Editor**: Milkdown/Crepe WYSIWYG Markdown editor with live preview. `Cmd+S` / `Ctrl+S` save. Auto-version with conflict detection (409).
+- **.md Import**: Upload `.md` files — filename becomes title.
+- **.md Export**: Download current note as `.md` file from editor toolbar.
+- **Image Upload**: Upload images via file picker, stored in R2. Inserted as `![alt](imageId)` in markdown.
+- **Image Zoom**: Click any image to view full-size, ESC to close.
 
 ### Sharing (Visitor)
 - **Database-backed share links**: UUID-based IDs with optional expiry (1h to 30d, or never). Revocable at any time.
-- **Read-only view**: Clean glassmorphism page with rendered markdown. Images are served through share-scoped signed URLs.
+- **Download permission**: Optional per-share-link toggle to allow visitors to download the .md file.
+- **Read-only view**: Clean glassmorphism page with rendered markdown. Text selectable for copy. Images served through share-scoped URLs.
 - **No auth required** for visitors.
 
 ### Image Management
@@ -157,12 +160,13 @@ Also removes R2 files, all associated images, and share links.
 ```
 POST /api/docs/:id/share
 Headers: Authorization: Bearer <JWT or API Token>
-Body: { "expiryMinutes": 1440 }
+Body: { "expiryMinutes": 1440, "allowDownload": false }
 Response: {
   "id": "shr_...",
   "docId": "...",
   "url": "/share/shr_...",
   "enabled": true,
+  "allowDownload": false,
   "expiresAt": "...",
   "createdAt": "...",
   "revokedAt": null
@@ -184,8 +188,10 @@ Sets `share_links.enabled = 0` + `revoked_at`. Subsequent visitor access fails i
 
 #### Visitor Access
 ```
-GET /share/:shareId         → returns { title, content } after D1 verification
-GET /share/:shareId/media/* → checks share + image.doc_id match, returns signed R2 URL or stream
+GET /api/share/:shareId          → returns { id, title, content, allowDownload }
+GET /api/share/:shareId/images   → returns image id-to-key mapping for UUID resolution
+GET /api/share/:shareId/media/*  → checks share + image.doc_id match, returns signed R2 URL or stream
+GET /api/share/:shareId/download → returns .md file download (if allow_download enabled)
 ```
 
 ### Media
@@ -251,8 +257,7 @@ Body: { "email": "new@example.com", "password": "newpass" }
 | GET | /api/docs/:id | owner | Get document + content |
 | PATCH | /api/docs/:id/patch | owner | Update document (version check) |
 | DELETE | /api/docs/:id | owner | Delete doc + R2 files + images + shares |
-| POST | /api/docs/:id/share | owner | Create share link |
-| GET | /api/docs/:id/shares | owner | List share links |
+| POST | /api/docs/:id/share | owner | Create share link (expiryMinutes, allowDownload) |
 | DELETE | /api/docs/:id/shares/:shareId | owner | Revoke share link |
 | POST | /api/upload | owner | Upload image |
 | POST | /api/upload-md | owner | Import .md file |
@@ -260,7 +265,9 @@ Body: { "email": "new@example.com", "password": "newpass" }
 | GET | /api/images | owner | List user's images |
 | DELETE | /api/images/:id | owner | Delete image |
 | GET | /api/share/:shareId | — | Get shared document |
+| GET | /api/share/:shareId/images | — | Get image ID-to-key mapping |
 | GET | /api/share/:shareId/media/:key | — | Get shared image (signed redirect) |
+| GET | /api/share/:shareId/download | — | Download .md (if allowed) |
 | PUT | /api/user/profile | owner | Update email/password |
 | GET | /api/user/tokens | owner | List API tokens |
 | POST | /api/user/tokens | owner | Create API token |

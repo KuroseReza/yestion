@@ -7,6 +7,7 @@ binding = "DB"
 database_name = "yestion-db"
 database_id = "472cf267-94e0-4c36-8802-8cec8c09de18"
 preview_database_id = "c5a0b944-0e2f-4b8c-b5af-628a4533a50b"
+migrations_dir = "functions/migrations"
 
 [[kv_namespaces]]
 binding = "KV"

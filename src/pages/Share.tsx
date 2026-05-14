@@ -2,6 +2,7 @@ import { createSignal, onMount } from 'solid-js'
 import { useParams } from '@solidjs/router'
 import MarkdownPreview from '../components/MarkdownPreview'
 import { BASE_URL } from '../utils/api'
+import { DownloadIcon } from '../components/Icons'
 
 export default function Share() {
   const params = useParams()
@@ -10,6 +11,7 @@ export default function Share() {
   const [imageMap, setImageMap] = createSignal<Record<string, string>>({})
   const [loading, setLoading] = createSignal(true)
   const [error, setError] = createSignal('')
+  const [allowDownload, setAllowDownload] = createSignal(false)
 
   onMount(async () => {
     try {
@@ -29,9 +31,10 @@ export default function Share() {
         throw new Error('Failed to load document')
       }
 
-      const data = await docRes.json() as { title: string; content: string }
+      const data = await docRes.json() as { title: string; content: string; allowDownload?: boolean }
       setTitle(data.title || 'Untitled')
       setContent(data.content || '')
+      setAllowDownload(data.allowDownload || false)
 
       // Build image map: UUID → r2_key
       if (imgRes.ok) {
@@ -81,9 +84,14 @@ export default function Share() {
       <div class="pointer-events-none fixed inset-0 opacity-70 [background:radial-gradient(circle_at_20%_10%,rgba(245,158,11,.18),transparent_24rem),radial-gradient(circle_at_82%_18%,rgba(251,146,60,.14),transparent_22rem)]" />
       <article class="relative max-w-4xl mx-auto glass-panel rounded-[2rem] p-5 sm:p-8 md:p-12 animate-fade-in">
         <header class="flex flex-col gap-3 border-b border-amber-900/10 pb-7 mb-8">
-          <div class="flex items-center gap-2">
-            <div class="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_24px_rgba(245,158,11,.55)]" />
-            <div class="text-[11px] font-bold uppercase tracking-[0.24em] text-amber-700/80">Yestion Shared Note</div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex items-center gap-2">
+              <div class="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_24px_rgba(245,158,11,.55)]" />
+              <div class="text-[11px] font-bold uppercase tracking-[0.24em] text-amber-700/80">Yestion Shared Note</div>
+            </div>
+            {allowDownload() && (
+              <a href={`${BASE_URL}/api/share/${params.id}/download`} class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 hover:bg-amber-500/20 transition-colors"><DownloadIcon class="w-3.5 h-3.5" /> Download .md</a>
+            )}
           </div>
         </header>
 

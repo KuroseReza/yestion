@@ -22,6 +22,7 @@ export interface ShareLinkRow {
   doc_id: string
   created_by: string
   enabled: number
+  allow_download: number
   expires_at: string | null
   created_at: string
   revoked_at: string | null
@@ -101,11 +102,11 @@ export async function getImages(d1: D1Database, owner_id: string): Promise<Image
   return result.results || []
 }
 
-export async function createShareLink(d1: D1Database, doc_id: string, created_by: string, expires_at: string | null): Promise<ShareLinkRow> {
+export async function createShareLink(d1: D1Database, doc_id: string, created_by: string, expires_at: string | null, allow_download: number = 0): Promise<ShareLinkRow> {
   const id = 'shr_' + crypto.randomUUID().replace(/-/g, '')
   await d1.prepare(
-    'INSERT INTO share_links (id, doc_id, created_by, expires_at) VALUES (?, ?, ?, ?)'
-  ).bind(id, doc_id, created_by, expires_at).run()
+    'INSERT INTO share_links (id, doc_id, created_by, expires_at, allow_download) VALUES (?, ?, ?, ?, ?)'
+  ).bind(id, doc_id, created_by, expires_at, allow_download).run()
   return (await getShareLink(d1, id))!
 }
 
@@ -127,9 +128,9 @@ export async function listShareLinks(d1: D1Database, doc_id: string): Promise<Sh
   return result.results || []
 }
 
-export async function disableShareLink(d1: D1Database, id: string, doc_id: string): Promise<boolean> {
+export async function deleteShareLink(d1: D1Database, id: string, doc_id: string): Promise<boolean> {
   const result = await d1.prepare(
-    "UPDATE share_links SET enabled = 0, revoked_at = datetime('now') WHERE id = ? AND doc_id = ?"
+    'DELETE FROM share_links WHERE id = ? AND doc_id = ?'
   ).bind(id, doc_id).run()
   return Boolean(result.meta?.changes)
 }

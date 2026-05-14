@@ -1,10 +1,10 @@
 import { getActiveShareLink } from '../lib/shareService'
 import { getDocContent, getImageById } from '../lib/db'
 import * as docService from '../lib/docService'
+import type { Env as AppEnv } from '../lib/index'
 
-interface Env {
-  DB: D1Database
-  R2: R2Bucket
+interface Env extends AppEnv {
+  ASSETS: Fetcher
 }
 
 function escapeHtml(s: string): string {
@@ -13,34 +13,6 @@ function escapeHtml(s: string): string {
 
 function stripMarkdown(md: string): string {
   return md.replace(/[#*`\\[\\]()!>|\\-~_]/g, '').replace(/\\n+/g, ' ').replace(/\\s+/g, ' ').trim()
-}
-
-// Synced from dist/index.html via build_and_sync.sh
-const CSS_PATH = '/assets/index-d4bswsIW.css'
-const JS_PATH = '/assets/index-Dr26cnoW.js'
-
-function renderHtml(ogTags: string): string {
-  return `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    ${ogTags}
-    <script>
-      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark')
-      } else {
-        document.documentElement.classList.remove('dark')
-      }
-    </script>
-    <script type="module" crossorigin src="${JS_PATH}"></script>
-    <link rel="stylesheet" crossorigin href="${CSS_PATH}">
-  </head>
-  <body class="bg-slate-50 text-slate-900 dark:bg-[#0a0a0a] dark:text-[#ededef] antialiased transition-colors duration-300">
-    <div id="root"></div>
-  </body>
-</html>`
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
@@ -80,16 +52,16 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       }
     }
 
+    const pageTitle = `${doc.title} - Yestion`
     const t = escapeHtml(doc.title)
     const d = escapeHtml(description)
     const img = ogImage ? escapeHtml(ogImage) : ''
 
     const ogTags = [
-      `<title>${t} – Yestion</title>`,
       `<meta property="og:title" content="${t}" />`,
       `<meta property="og:description" content="${d}" />`,
       `<meta property="og:type" content="article" />`,
-      `<meta property="og:url" content="${context.request.url}" />`,
+      `<meta property="og:url" content="${escapeHtml(context.request.url)}" />`,
       `<meta property="og:site_name" content="Yestion" />`,
       img ? `<meta property="og:image" content="${img}" />` : '',
       `<meta name="twitter:card" content="${img ? 'summary_large_image' : 'summary'}" />`,
@@ -98,8 +70,31 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       img ? `<meta name="twitter:image" content="${img}" />` : '',
     ].filter(Boolean).join('\n    ')
 
-    return new Response(renderHtml(ogTags), {
-      headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300' },
+    const shellUrl = new URL('/', context.request.url)
+    const shell = await context.env.ASSETS.fetch(shellUrl)
+    if (!shell.ok) return context.next()
+
+    const rewritten = new HTMLRewriter()
+      .on('title', {
+        element(element) {
+          element.setInnerContent(pageTitle)
+        },
+      })
+      .on('head', {
+        element(element) {
+          element.append(`\n    ${ogTags}`, { html: true })
+        },
+      })
+      .transform(shell)
+
+    const headers = new Headers(rewritten.headers)
+    headers.set('Content-Type', 'text/html; charset=utf-8')
+    headers.set('Cache-Control', 'public, max-age=300')
+
+    return new Response(rewritten.body, {
+      status: rewritten.status,
+      statusText: rewritten.statusText,
+      headers,
     })
   } catch {
     return context.next()

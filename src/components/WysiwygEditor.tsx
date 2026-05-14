@@ -2,8 +2,9 @@ import { createSignal, onMount, onCleanup } from 'solid-js'
 import { render } from 'solid-js/web'
 import { Crepe } from '@milkdown/crepe'
 import { $view } from '@milkdown/kit/utils'
-import { imageSchema } from '@milkdown/kit/preset/commonmark'
+import { htmlSchema, imageSchema } from '@milkdown/kit/preset/commonmark'
 import { imageBlockSchema } from '@milkdown/kit/component/image-block'
+import type { Node as ProseNode } from '@milkdown/prose/model'
 import '@milkdown/crepe/theme/common/style.css'
 import '@milkdown/crepe/theme/nord.css'
 import '../crepe-overrides.css'
@@ -13,6 +14,76 @@ import { mermaidThemeConfig } from '../utils/mermaidTheme'
 const LS_DEBOUNCE_MS = 500
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
+
+type HtmlImageAttrs = {
+  src: string
+  alt: string
+  title: string
+  width: string
+  height: string
+}
+
+const safeDataImagePattern = /^data:image\/(?:png|gif|jpe?g|webp|avif);base64,[a-z0-9+/]+=*$/i
+
+function normalizeUrl(value: string) {
+  return value.trim().replace(/[\u0000-\u001f\u007f]+/g, '')
+}
+
+function isSafeEditorImageSrc(value: string) {
+  const normalized = normalizeUrl(value)
+  if (!normalized) return false
+  if (normalized.startsWith('/') && !normalized.startsWith('//')) return true
+  if (normalized.startsWith('./') || normalized.startsWith('../')) return true
+  if (safeDataImagePattern.test(normalized)) return true
+
+  try {
+    const url = new URL(normalized, window.location.origin)
+    const protocol = url.protocol.toLowerCase()
+    return protocol === 'http:' || protocol === 'https:' || protocol === 'blob:'
+  } catch {
+    return !normalized.includes(':')
+  }
+}
+
+function numericDimension(value: string) {
+  const trimmed = value.trim()
+  if (!/^\d+(?:\.\d+)?$/.test(trimmed)) return ''
+  const n = Number(trimmed)
+  return Number.isFinite(n) && n > 0 ? trimmed : ''
+}
+
+function applyImageDimensions(el: HTMLElement, width?: string, height?: string) {
+  const w = numericDimension(width || '')
+  const h = numericDimension(height || '')
+  el.style.maxWidth = w ? `min(${w}px, 100%)` : ''
+  el.style.aspectRatio = w && h ? w + ' / ' + h : ''
+}
+
+function parseSingleHtmlImage(value: string): HtmlImageAttrs | null {
+  const template = document.createElement('template')
+  template.innerHTML = value.trim()
+  const nodes = Array.from(template.content.childNodes).filter((node) => {
+    if (node.nodeType === Node.COMMENT_NODE) return false
+    return node.nodeType !== Node.TEXT_NODE || Boolean(node.textContent?.trim())
+  })
+  if (nodes.length !== 1) return null
+
+  const element = nodes[0]
+  if (element.nodeType !== Node.ELEMENT_NODE) return null
+  const img = element as HTMLElement
+  if (img.tagName.toLowerCase() !== 'img') return null
+
+  const src = normalizeUrl(img.getAttribute('src') || '')
+  if (!isSafeEditorImageSrc(src)) return null
+
+  return {
+    src,
+    alt: img.getAttribute('alt') || '',
+    title: img.getAttribute('title') || img.getAttribute('alt') || '',
+    width: numericDimension(img.getAttribute('width') || ''),
+    height: numericDimension(img.getAttribute('height') || ''),
+  }
+}
 
 function stripMermaidLabel(raw: string) {
   return raw
@@ -78,6 +149,8 @@ function createLazyImageViewDom(initial: {
   src: string
   alt?: string
   title?: string
+  width?: string
+  height?: string
   block?: boolean
 }, transformSrc?: (src: string) => string, onImageClick?: (src: string) => void) {
   const dom = document.createElement(initial.block ? 'div' : 'span')
@@ -85,6 +158,7 @@ function createLazyImageViewDom(initial: {
     ? 'wysiwyg-lazy-image wysiwyg-lazy-image-block milkdown-image-block'
     : 'wysiwyg-lazy-image milkdown-image-inline'
   dom.dataset.lazyImage = 'true'
+  applyImageDimensions(dom, initial.width, initial.height)
   if (initial.block) {
     dom.contentEditable = 'false'
     dom.draggable = true
@@ -95,6 +169,16 @@ function createLazyImageViewDom(initial: {
     alt: initial.alt || '',
     title: initial.title || '',
   })
+  const handleClick = (event: Event) => {
+    if (!onImageClick) return
+    event.preventDefault()
+    event.stopPropagation()
+    onImageClick(image().src)
+  }
+
+  if (onImageClick) {
+    dom.addEventListener('click', handleClick, true)
+  }
 
   const dispose = render(
     () => {
@@ -107,7 +191,6 @@ function createLazyImageViewDom(initial: {
           animate={false}
           containerClass="wysiwyg-lazy-image-container"
           class="wysiwyg-lazy-image-img"
-          onClick={onImageClick ? () => onImageClick(data.src) : undefined}
         />
       )
     },
@@ -116,19 +199,23 @@ function createLazyImageViewDom(initial: {
 
   return {
     dom,
-    update: (next: { src: string; alt?: string; title?: string }) => {
+    update: (next: { src: string; alt?: string; title?: string; width?: string; height?: string }) => {
+      applyImageDimensions(dom, next.width, next.height)
       setImage({
         src: transformSrc?.(next.src) || next.src,
         alt: next.alt || '',
         title: next.title || '',
       })
     },
-    dispose,
+    dispose: () => {
+      if (onImageClick) dom.removeEventListener('click', handleClick, true)
+      dispose()
+    },
   }
 }
 
 const createLazyInlineImageView = (transformSrc?: (src: string) => string, onImageClick?: (src: string) => void) => $view(imageSchema.node, () => {
-  return (initialNode) => {
+  return (initialNode: ProseNode) => {
     const view = createLazyImageViewDom({
       src: String(initialNode.attrs.src || ''),
       alt: String(initialNode.attrs.alt || ''),
@@ -148,13 +235,14 @@ const createLazyInlineImageView = (transformSrc?: (src: string) => string, onIma
       },
       selectNode: () => view.dom.classList.add('selected'),
       deselectNode: () => view.dom.classList.remove('selected'),
+      stopEvent: (event: Event) => Boolean(onImageClick && event.type === 'click'),
       destroy: () => view.dispose(),
     }
   }
 })
 
 const createLazyImageBlockView = (transformSrc?: (src: string) => string, onImageClick?: (src: string) => void) => $view(imageBlockSchema.node, () => {
-  return (initialNode) => {
+  return (initialNode: ProseNode) => {
     const view = createLazyImageViewDom({
       src: String(initialNode.attrs.src || ''),
       alt: String(initialNode.attrs.caption || ''),
@@ -176,10 +264,83 @@ const createLazyImageBlockView = (transformSrc?: (src: string) => string, onImag
       },
       selectNode: () => view.dom.classList.add('selected'),
       deselectNode: () => view.dom.classList.remove('selected'),
+      stopEvent: (event: Event) => Boolean(onImageClick && event.type === 'click'),
       destroy: () => view.dispose(),
     }
   }
 })
+
+
+const createHtmlImageView = (transformSrc?: (src: string) => string, onImageClick?: (src: string) => void) => $view(htmlSchema.node, () => {
+  return (initialNode: ProseNode) => {
+    let currentImage = parseSingleHtmlImage(String(initialNode.attrs.value || ''))
+
+    if (!currentImage) {
+      const value = String(initialNode.attrs.value || '')
+      const isHtmlComment = /^<!--[\s\S]*-->$/.test(value.trim())
+
+      const dom = document.createElement('span')
+      dom.className = isHtmlComment ? 'wysiwyg-html-comment' : 'wysiwyg-html-atom'
+      dom.dataset.type = 'html'
+      dom.dataset.value = value
+      dom.textContent = isHtmlComment ? '' : value
+
+      if (isHtmlComment) {
+        return {
+          dom,
+          update: (updatedNode: typeof initialNode) => {
+            if (updatedNode.type !== initialNode.type) return false
+            dom.dataset.value = String(updatedNode.attrs.value || '')
+            return true
+          },
+        }
+      }
+
+      return {
+        dom,
+        update: (updatedNode: typeof initialNode) => {
+          if (updatedNode.type !== initialNode.type) return false
+          if (parseSingleHtmlImage(String(updatedNode.attrs.value || ''))) return false
+          const nextValue = String(updatedNode.attrs.value || '')
+          dom.dataset.value = nextValue
+          dom.textContent = nextValue
+          return true
+        },
+        selectNode: () => dom.classList.add('selected'),
+        deselectNode: () => dom.classList.remove('selected'),
+      }
+    }
+
+    const view = createLazyImageViewDom({
+      src: currentImage.src,
+      alt: currentImage.alt,
+      title: currentImage.title,
+      width: currentImage.width,
+      height: currentImage.height,
+    }, transformSrc, onImageClick)
+    view.dom.classList.add('wysiwyg-html-image')
+    view.dom.dataset.type = 'html'
+    view.dom.dataset.value = String(initialNode.attrs.value || '')
+
+    return {
+      dom: view.dom,
+      update: (updatedNode: typeof initialNode) => {
+        if (updatedNode.type !== initialNode.type) return false
+        const nextImage = parseSingleHtmlImage(String(updatedNode.attrs.value || ''))
+        if (!nextImage) return false
+        currentImage = nextImage
+        view.dom.dataset.value = String(updatedNode.attrs.value || '')
+        view.update(nextImage)
+        return true
+      },
+      selectNode: () => view.dom.classList.add('selected'),
+      deselectNode: () => view.dom.classList.remove('selected'),
+      stopEvent: (event: Event) => Boolean(onImageClick && event.type === 'click'),
+      destroy: () => view.dispose(),
+    }
+  }
+})
+
 
 export default function WysiwygEditor(props: {
   readonly?: boolean
@@ -328,7 +489,10 @@ export default function WysiwygEditor(props: {
 
     // Official Milkdown NodeView override: render inline markdown images with
     // the same lazy/skeleton/error behavior as the app-level LazyImage.
-    crepe.editor.use(createLazyInlineImageView(props.transformSrc, props.onImageClick)).use(createLazyImageBlockView(props.transformSrc, props.onImageClick))
+    crepe.editor
+      .use(createLazyInlineImageView(props.transformSrc, props.onImageClick))
+      .use(createLazyImageBlockView(props.transformSrc, props.onImageClick))
+      .use(createHtmlImageView(props.transformSrc, props.onImageClick))
 
     // Keep the Raw Markdown panel in sync when initial content is restored
     // from localStorage before Milkdown emits the first markdownUpdated event.
@@ -373,4 +537,3 @@ export default function WysiwygEditor(props: {
     </div>
   )
 }
-

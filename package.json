@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && CSS=$(grep -oP 'href=\"\\K/assets/[^\"]+\\.css' dist/index.html) && JS=$(grep -oP 'src=\"\\K/assets/[^\"]+\\.js' dist/index.html) && sed -i \"s|const CSS_PATH = .*|const CSS_PATH = '$CSS'|\" functions/share/[id].ts && sed -i \"s|const JS_PATH = .*|const JS_PATH = '$JS'|\" functions/share/[id].ts && echo \"Synced: $CSS | $JS\"",
+    "build": "tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@milkdown/crepe": "^7.20.0",
     "@milkdown/ctx": "^7.20.0",
+    "@milkdown/kit": "^7.20.0",
     "@milkdown/prose": "^7.20.0",
     "@milkdown/transformer": "^7.20.0",
     "@prosemirror-adapter/solid": "^0.5.3",

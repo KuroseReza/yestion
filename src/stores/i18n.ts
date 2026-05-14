@@ -128,6 +128,9 @@ const translations = {
     uploadError: 'Image upload failed',
     uploadMd: 'Import .md file',
     uploadMdError: 'Failed to import .md file.',
+    downloadMd: 'Download .md',
+    downloadMdError: 'Failed to download .md file.',
+    allowDownloadMd: 'Allow .md download',
   },
   zh: {
     login: '登录',
@@ -240,6 +243,9 @@ const translations = {
     uploadError: '图片上传失败',
     uploadMd: '导入 .md 文件',
     uploadMdError: '导入 .md 文件失败。',
+    downloadMd: '下载 .md',
+    downloadMdError: '下载 .md 文件失败。',
+    allowDownloadMd: '允许下载 .md 文件',
   }
 }
 

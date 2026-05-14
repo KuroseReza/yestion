@@ -6,6 +6,7 @@ export interface ShareLinkResponse {
   docId: string
   url: string
   enabled: boolean
+  allowDownload: boolean
   expiresAt: string | null
   createdAt: string
   revokedAt: string | null
@@ -17,17 +18,18 @@ function toResponse(row: db.ShareLinkRow): ShareLinkResponse {
     docId: row.doc_id,
     url: `/share/${row.id}`,
     enabled: Boolean(row.enabled) && !row.revoked_at,
+    allowDownload: Boolean(row.allow_download),
     expiresAt: row.expires_at,
     createdAt: row.created_at,
     revokedAt: row.revoked_at,
   }
 }
 
-export async function createShareLink(env: Env, docId: string, createdBy: string, expiryMinutes?: number): Promise<ShareLinkResponse> {
+export async function createShareLink(env: Env, docId: string, createdBy: string, expiryMinutes?: number, allowDownload?: boolean): Promise<ShareLinkResponse> {
   const expiresAt = expiryMinutes && expiryMinutes > 0
     ? new Date(Date.now() + expiryMinutes * 60 * 1000).toISOString()
     : null
-  const row = await db.createShareLink(env.DB, docId, createdBy, expiresAt)
+  const row = await db.createShareLink(env.DB, docId, createdBy, expiresAt, allowDownload ? 1 : 0)
   return toResponse(row)
 }
 
@@ -37,9 +39,9 @@ export async function getActiveShareLink(env: Env, shareId: string): Promise<db.
 
 export async function listShareLinks(env: Env, docId: string): Promise<ShareLinkResponse[]> {
   const rows = await db.listShareLinks(env.DB, docId)
-  return rows.map(toResponse)
+  return rows.map(toResponse).filter(share => share.enabled)
 }
 
-export async function disableShareLink(env: Env, docId: string, shareId: string): Promise<boolean> {
-  return db.disableShareLink(env.DB, shareId, docId)
+export async function deleteShareLink(env: Env, docId: string, shareId: string): Promise<boolean> {
+  return db.deleteShareLink(env.DB, shareId, docId)
 }

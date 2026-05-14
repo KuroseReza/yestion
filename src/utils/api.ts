@@ -42,6 +42,7 @@ export type ShareLink = {
   docId: string
   url: string
   enabled: boolean
+  allowDownload: boolean
   expiresAt: string | null
   createdAt: string
   revokedAt: string | null
@@ -135,10 +136,10 @@ export const deleteNote = async (id: string) => {
   return apiFetch(`/api/docs/${id}`, { method: 'DELETE' })
 }
 
-export const shareNote = async (id: string, expiresInMinutes: number = 1440) => {
+export const shareNote = async (id: string, expiresInMinutes: number = 1440, allowDownload: boolean = false) => {
   return apiFetch<ShareLink>(`/api/docs/${id}/share`, {
     method: 'POST',
-    body: JSON.stringify({ expiryMinutes: expiresInMinutes })
+    body: JSON.stringify({ expiryMinutes: expiresInMinutes, allowDownload })
   })
 }
 

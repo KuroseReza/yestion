@@ -2,7 +2,7 @@ import { createSignal, createEffect, onMount, onCleanup, Show, For } from 'solid
 import { useNavigate } from '@solidjs/router'
 import { token } from '../stores/auth'
 import { t } from '../stores/i18n'
-import { FileIcon, PlusIcon, TrashIcon, ShareIcon, PhotoIcon, UploadIcon } from '../components/Icons'
+import { FileIcon, PlusIcon, TrashIcon, ShareIcon, PhotoIcon, UploadIcon, DownloadIcon } from '../components/Icons'
 import WysiwygEditor from '../components/WysiwygEditor'
 import LazyImage from '../components/LazyImage'
 import {
@@ -54,6 +54,7 @@ export default function Home() {
   const [imageFile, setImageFile] = createSignal<File | null>(null)
   const [imageMap, setImageMap] = createSignal<Record<string, string>>({})
   const [expiryMinutes, setExpiryMinutes] = createSignal(1440)
+  const [allowDownload, setAllowDownload] = createSignal(false)
   const [existingImages, setExistingImages] = createSignal<any[] | null>(null)
   let uploadMdRef: HTMLInputElement | undefined
   let draftSaveTimer: ReturnType<typeof setTimeout> | null = null
@@ -126,7 +127,8 @@ export default function Home() {
     if (!docId) return
     setShareLoading(true)
     try {
-      setShareLinks(await listShares(docId))
+      const shares = await listShares(docId)
+      setShareLinks(shares.filter(share => share.enabled))
     } catch (err) {
       console.error(err)
       setShareLinks([])
@@ -165,6 +167,22 @@ export default function Home() {
     } finally {
       setLoading(false)
       setCanPersistDraft(true)
+    }
+  }
+
+  const handleDownload = () => {
+    try {
+      const blob = new Blob([content()], { type: 'text/markdown' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = (title().trim() || 'untitled') + '.md'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch {
+      alert(t('downloadMdError'))
     }
   }
 
@@ -282,7 +300,7 @@ export default function Home() {
     if (!activeNoteId() || sharing()) return
     setSharing(true)
     try {
-      const res = await shareNote(activeNoteId()!, expiryMinutes() || 0)
+      const res = await shareNote(activeNoteId()!, expiryMinutes() || 0, allowDownload())
       await navigator.clipboard.writeText(window.location.origin + res.url)
       setSharePanelOpen(true)
       await loadShares(activeNoteId()!)
@@ -298,7 +316,7 @@ export default function Home() {
     if (!activeNoteId() || sharing()) return
     setSharing(true)
     try {
-      await shareNote(activeNoteId()!, expiryMinutes() || 0)
+      await shareNote(activeNoteId()!, expiryMinutes() || 0, allowDownload())
       await loadShares(activeNoteId()!)
     } catch (err) {
       alert(t('shareError'))
@@ -308,9 +326,10 @@ export default function Home() {
   }
 
   const handleOpenSharePanel = async () => {
-    if (!activeNoteId()) return
+    const docId = activeNoteId()
+    if (!docId) return
     setSharePanelOpen(!sharePanelOpen())
-    if (!sharePanelOpen()) await loadShares(activeNoteId())
+    if (sharePanelOpen()) await loadShares(docId)
   }
 
   const handleCopyShare = async (share: ShareLink) => {
@@ -458,8 +477,9 @@ export default function Home() {
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             </button>
             <input type="text" value={title()} onInput={e => setTitle(e.currentTarget.value)} class="flex-1 min-w-0 bg-transparent text-lg md:text-xl font-bold text-stone-950 dark:text-stone-50 outline-none placeholder-slate-300 dark:placeholder-white/20" placeholder={t('untitled')} disabled={loading()} />
-            <div class="flex items-center gap-2 ml-4 shrink-0">
+            <div class="flex items-center gap-1 sm:gap-2 ml-2 md:ml-4 min-w-0 py-1">
               <button onClick={openImageDialog} disabled={uploading() || loading()} class={`p-2 rounded-md hover:bg-amber-50 dark:hover:bg-white/5 text-stone-500 dark:text-stone-400 transition-colors active:scale-90 ${uploading() ? 'animate-pulse' : ''}`} title={t('insertImage')}><PhotoIcon class="w-4.5 h-4.5" /></button>
+              <button onClick={handleDownload} class="p-2 rounded-md hover:bg-amber-50 dark:hover:bg-white/5 text-stone-500 dark:text-stone-400 transition-colors active:scale-90" title={t('downloadMd')}><DownloadIcon class="w-4.5 h-4.5" /></button>
               <button onClick={handleShare} disabled={sharing() || loading() || !activeNoteId()} class="p-2 rounded-md hover:bg-amber-50 dark:hover:bg-white/5 text-stone-500 dark:text-stone-400 transition-colors active:scale-90" title={t('shareLinks')}><ShareIcon class="w-4.5 h-4.5" /></button>
               <button onClick={handleOpenSharePanel} disabled={!activeNoteId()} class="hidden sm:inline-flex px-2.5 py-1.5 rounded-md text-xs border border-amber-900/10 dark:border-white/10 text-stone-500 dark:text-stone-400 hover:bg-amber-50 dark:hover:bg-white/5 active:scale-95">{t('shareLinks')}</button>
               <button onClick={handleDelete} disabled={deleting() || loading() || !activeNoteId()} class="p-2 rounded-md hover:bg-amber-50 dark:hover:bg-white/5 text-stone-500 dark:text-stone-400 hover:text-red-500 dark:hover:text-red-400 transition-colors active:scale-90" title={t('confirmDelete')}><TrashIcon class="w-4.5 h-4.5" /></button>
@@ -484,7 +504,7 @@ export default function Home() {
           <Show when={sharePanelOpen()}>
             <div class="mx-4 md:mx-8 mt-4 rounded-xl border border-amber-900/10 dark:border-white/10 glass-card backdrop-blur p-4 shadow-sm animate-panel-in">
               <div class="flex items-center justify-between mb-3"><div><div class="text-sm font-semibold text-stone-800 dark:text-stone-50">{t('shareLinks')}</div><div class="text-xs text-stone-500 dark:text-stone-50/40">{t('shareLinksDesc')}</div></div><button class="text-xs text-stone-500 hover:text-stone-950 dark:hover:text-white" onClick={() => setSharePanelOpen(false)}>{t('close')}</button></div>
-              <div class="flex items-end gap-2 mb-4">
+              <div class="flex items-end gap-2 mb-3">
                 <div class="flex flex-col gap-1 flex-1">
                   <label class="text-[10px] text-stone-500 dark:text-stone-400 uppercase tracking-wider">{t('expiryTime')}</label>
                   <select value={expiryMinutes()} onChange={e => setExpiryMinutes(parseInt(e.currentTarget.value))} class="w-full rounded-lg border border-amber-900/10 dark:border-white/10 bg-white dark:bg-black/20 px-3 py-2 text-sm outline-none text-stone-950 dark:text-stone-50">
@@ -496,14 +516,18 @@ export default function Home() {
                     <option value="0">{t('neverExpire')}</option>
                   </select>
                 </div>
-                <button onClick={handleCreateShare} disabled={sharing()} class="px-4 py-2 rounded-lg btn-warm-primary text-sm font-medium disabled:opacity-50 whitespace-nowrap">{sharing() ? t('creating') : t('createShare')}</button>
+                <button onClick={handleCreateShare} disabled={sharing()} class="px-4 py-2 rounded-lg btn-warm-primary text-sm font-medium disabled:opacity-50 whitespace-nowrap self-center">{sharing() ? t('creating') : t('createShare')}</button>
               </div>
+              <label class="flex items-center gap-2 mb-4 cursor-pointer">
+                <input type="checkbox" checked={allowDownload()} onChange={e => setAllowDownload(e.currentTarget.checked)} class="rounded border-amber-900/20 dark:border-white/20 text-amber-600 focus:ring-amber-500" />
+                <span class="text-xs text-stone-700 dark:text-stone-200">{t('allowDownloadMd')}</span>
+              </label>
               <Show when={!shareLoading()} fallback={<div class="text-xs text-stone-400">{t('loadingShares')}</div>}>
                 <Show when={shareLinks().length > 0} fallback={<div class="text-xs text-stone-400">{t('noShareLinks')}</div>}>
                   <div class="space-y-2">
                     <For each={shareLinks()}>{(share) => (
                       <div class="flex flex-col sm:flex-row sm:items-center gap-2 justify-between rounded-lg bg-amber-50/70 dark:bg-black/20 border border-amber-900/10 dark:border-white/10 px-3 py-2">
-                        <div class="min-w-0"><div class="text-xs font-mono truncate text-stone-700 dark:text-stone-200">{window.location.origin + share.url}</div><div class="text-[11px] text-stone-500 dark:text-stone-50/40">{share.enabled ? t('active') : t('revoked')} · {t('expires')} {share.expiresAt ? new Date(share.expiresAt).toLocaleString() : t('never')}</div></div>
+                        <div class="min-w-0"><div class="text-xs font-mono truncate text-stone-700 dark:text-stone-200">{window.location.origin + share.url}</div><div class="text-[11px] text-stone-500 dark:text-stone-50/40 flex items-center gap-1.5">{share.enabled ? t('active') : t('revoked')} · {t('expires')} {share.expiresAt ? new Date(share.expiresAt).toLocaleString() : t('never')}{share.allowDownload && <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20">DL</span>}</div></div>
                         <div class="flex gap-2 shrink-0"><button class="px-2 py-1 rounded-md text-xs bg-amber-600 text-white" onClick={() => handleCopyShare(share)}>{t('copy')}</button><button class="px-2 py-1 rounded-md text-xs bg-red-500/10 text-red-500 border border-red-500/20 disabled:opacity-40" disabled={!share.enabled} onClick={() => handleDeleteShare(share.id)}>{t('revoke')}</button></div>
                       </div>
                     )}</For>
@@ -550,7 +574,7 @@ export default function Home() {
             </div>
           </Show>
           
-          <div class="flex-1 min-h-0 h-full overflow-y-auto custom-scrollbar relative" onKeyDown={onKeyDown}>
+          <div class="flex-1 min-h-0 h-full overflow-y-auto overflow-x-hidden custom-scrollbar relative" onKeyDown={onKeyDown}>
             <Show when={!loading()} fallback={
               <div class="p-4 md:p-8 animate-pulse">
                 <div class="h-10 bg-stone-200 dark:bg-white/10 rounded-md w-1/3 mb-8"></div>
@@ -561,14 +585,14 @@ export default function Home() {
                 </div>
               </div>
             }>
-              <div class="p-4 md:p-8">
+              <div class="min-w-0 p-4 md:p-8">
                 <For each={[editorKey()]}>
                 {() => (
                   <WysiwygEditor
                     content={content()}
                     onChange={setContent}
                     transformSrc={transformEditorImageSrc}
-                    class="min-h-[55vh]"
+                    class="min-h-[55vh] min-w-0"
                   />
                 )}
               </For>
@@ -579,6 +603,7 @@ export default function Home() {
           </div>
         </Show>
       </div>
+
     </div>
   )
 }

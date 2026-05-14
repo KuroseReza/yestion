@@ -6,7 +6,6 @@ import About from './pages/About'
 import Settings from './pages/Settings'
 import Login from './pages/Login'
 import Share from './pages/Share'
-import TestWysiwyg from './pages/TestWysiwyg'
 
 export default function App() {
   return (
@@ -17,7 +16,6 @@ export default function App() {
         <Route path="/api-docs" component={ApiDocs} />
         <Route path="/settings" component={Settings} />
         <Route path="/login" component={Login} />
-        <Route path="/test-wysiwyg" component={TestWysiwyg} />
       </Route>
       <Route path="/share/:id" component={Share} />
     </Router>

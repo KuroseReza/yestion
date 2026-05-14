@@ -1,4 +1,4 @@
-import { createResource, Show, ErrorBoundary, Suspense } from 'solid-js'
+import { createResource, createSignal, createEffect, onCleanup, Show, ErrorBoundary, Suspense } from 'solid-js'
 import ImageSkeleton from './ImageSkeleton'
 
 function BrokenImageIcon() {
@@ -60,18 +60,46 @@ export default function LazyImage(props: {
   onClick?: () => void
   animate?: boolean
 }) {
+  const [zoomed, setZoomed] = createSignal(false)
+
+  createEffect(() => {
+    if (zoomed()) {
+      const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setZoomed(false) }
+      document.addEventListener('keydown', handler)
+      onCleanup(() => document.removeEventListener('keydown', handler))
+    }
+  })
+
+  const handleClick = props.onClick
+    ? props.onClick
+    : () => { if (props.src && (props.src.startsWith('http') || props.src.startsWith('/') || props.src.startsWith('blob:') || props.src.startsWith('data:'))) setZoomed(true) }
+
   return (
-    <div class={`relative overflow-hidden ${props.containerClass || 'rounded-md my-4 min-h-[120px]'}`}>
-      <ErrorBoundary fallback={<BrokenImageIcon />}>
-        <AsyncImage
-          src={props.src}
-          alt={props.alt || ''}
-          title={props.title}
-          class={props.class}
-          onClick={props.onClick}
-          animate={props.animate}
-        />
-      </ErrorBoundary>
-    </div>
+    <>
+      <div class={`relative overflow-hidden ${props.containerClass || 'rounded-md my-4 min-h-[120px]'}`}>
+        <ErrorBoundary fallback={<BrokenImageIcon />}>
+          <AsyncImage
+            src={props.src}
+            alt={props.alt || ''}
+            title={props.title}
+            class={props.class}
+            onClick={handleClick}
+            animate={props.animate}
+          />
+        </ErrorBoundary>
+      </div>
+      <Show when={zoomed()}>
+        <div
+          class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out animate-fade-in"
+          onClick={() => setZoomed(false)}
+        >
+          <img
+            src={props.src}
+            class="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-image-in"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      </Show>
+    </>
   )
 }

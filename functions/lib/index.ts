@@ -8,7 +8,7 @@ import * as docService from './docService'
 import { uploadImage } from './mediaService'
 import { getDocContent, getImageByKey } from './db'
 import { getSignedUrl } from './r2sign'
-import { createShareLink, getActiveShareLink, listShareLinks, disableShareLink } from './shareService'
+import { createShareLink, getActiveShareLink, listShareLinks, deleteShareLink } from './shareService'
 
 export interface Env {
   DB: D1Database
@@ -332,7 +332,7 @@ router.delete('/api/docs/:id/shares/:shareId', authMw, async (request, env) => {
   const doc = await docService.getDocMetadata(env, request.params.id)
   if (!doc) return error(404, 'Not found')
   if (doc.owner_id !== auth.sub) return error(403, 'Forbidden')
-  const ok = await disableShareLink(env, request.params.id, request.params.shareId)
+  const ok = await deleteShareLink(env, request.params.id, request.params.shareId)
   if (!ok) return error(404, 'Share link not found')
   return json({ success: true })
 })
