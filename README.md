@@ -65,8 +65,9 @@ npm install
 # Dev server (frontend only — API calls go to deployed or local Worker)
 npm run dev
 
-# Production build + sync asset paths
-npm run build:sync
+# Full-stack local dev (Pages + Functions + D1 + KV + R2)
+npm run build
+wrangler pages dev dist --port 5173
 
 # Preview built output
 npm run preview
@@ -75,10 +76,19 @@ npm run preview
 ### Deploy
 
 ```bash
-npm run build:sync
-CLOUDFLARE_API_TOKEN=*** npx wrangler pages deploy dist \
-  --project-name=yestion --branch=master --commit-dirty
+# 1. Build frontend
+npm run build
+
+# 2. Apply D1 migrations (first deploy or schema changes)
+npx wrangler d1 execute yestion-db --remote --command "<SQL>"
+# Or apply all pending migrations:
+npx wrangler d1 migrations apply yestion-db --remote
+
+# 3. Deploy to Cloudflare Pages
+npx wrangler pages deploy dist --project-name=yestion --branch=master --commit-dirty
 ```
+
+> Replace `yestion-db` with your database name. Set `migrations_dir = "functions/migrations"` in `wrangler.toml` under `[[d1_databases]]` for migration support.
 
 ## Project Structure
 
